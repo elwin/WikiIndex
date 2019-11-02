@@ -9,17 +9,20 @@ import (
 
 type App struct {
 	index database.Index
+	Count *int
 }
 
 func New() *App {
+	var i int
 	return &App{
 		database.New(),
+		&i,
 	}
 }
 
-func (a *App) AddWikiIndex (r io.ReadCloser) error {
+func (a *App) AddWikiIndex (r io.Reader) error {
 	fmt.Println("Processing file")
-	x, err := wiki.Process(r)
+	x, err := wiki.Process(r, a.Count)
 	if err != nil {
 		return err
 	}

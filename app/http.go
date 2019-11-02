@@ -13,7 +13,7 @@ func (app *App) Serve() error {
 	
 	r.GET("/size", func(c *gin.Context) {
 		c.JSON(200, gin.H{
-			"size": app.index.Size(),
+			"size": app.Count,
 		})
 	})
 
@@ -66,8 +66,46 @@ func (app *App) Serve() error {
 
 
 		c.JSON(200, gin.H{
-			"from": to.Title,
-			"to": from.Title,
+			"from": from.Title,
+			"to": to.Title,
+			"cost": cost,
+		})
+	})
+
+	r.GET("/longest", func(c *gin.Context) {
+
+		from, err := app.index.Get(c.Query("from"))
+		if err != nil {
+			c.JSON(404, gin.H{
+				"error": err.Error(),
+			})
+			return
+		}
+
+
+		to, cost := app.index.LongestPath(from)
+		if to == nil {
+			c.JSON(404, gin.H{
+				"error": "no path found :(",
+			})
+			return
+		}
+
+
+		c.JSON(200, gin.H{
+			"from": from.Title,
+			"to":   to.Title,
+			"cost": cost,
+		})
+	})
+
+	r.GET("/loooongest", func(c *gin.Context) {
+
+		from, to, cost := app.index.LongestTotalPath()
+
+		c.JSON(200, gin.H{
+			"from": from.Title,
+			"to":   to.Title,
 			"cost": cost,
 		})
 	})

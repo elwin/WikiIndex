@@ -9,6 +9,8 @@ import (
 type Index interface {
 	Get(title string) (*Page, error)
 	Path(from, to *Page) (int, error)
+	LongestPath(from *Page) (*Page, int)
+	LongestTotalPath() (from, to *Page, cost int)
 	BatchProcess(map[string][]string)
 	Size() int
 }
@@ -49,11 +51,11 @@ func (i *MapIndex) Size() int {
 	return len(i.index)
 }
 
-func (i *MapIndex) Path(a, b *Page) (int, error) {
+func (i *MapIndex) Path(from, to *Page) (int, error) {
 	cost := map[*Page]int{}
 
 	queue := make([]*Page, 0)
-	queue = append(queue, a)
+	queue = append(queue, from)
 
 	for {
 		if len(queue) == 0 {
@@ -64,7 +66,7 @@ func (i *MapIndex) Path(a, b *Page) (int, error) {
 		queue = queue[1:]
 
 		// Found neighbour
-		if current == b {
+		if current == to {
 			break
 		}
 
@@ -86,9 +88,69 @@ func (i *MapIndex) Path(a, b *Page) (int, error) {
 	}
 
 	path := make([]*Page, 0)
-	path = append(path, a, b)
+	path = append(path, from, to)
 
-	return cost[b], nil
+	return cost[to], nil
+}
+
+func (i *MapIndex) LongestPath(from *Page) (*Page, int) {
+	cost := map[*Page]int{}
+
+	queue := make([]*Page, 0)
+	queue = append(queue, from)
+
+	for {
+		if len(queue) == 0 {
+			break
+		}
+
+		current := queue[0]
+		queue = queue[1:]
+
+		currentCost := cost[current]
+
+		for neighbour := range current.References {
+
+			// Already visited
+			if cost[neighbour] != 0 {
+				continue
+			}
+
+			// Assign cost
+			cost[neighbour] = currentCost + 1
+
+			// Add the queue
+			queue = append(queue, neighbour)
+		}
+	}
+
+	maxCost := 0
+	var node *Page
+
+	for n, c := range cost {
+		if c > maxCost {
+			maxCost = c
+			node = n
+		}
+	}
+
+	return node, maxCost
+}
+
+func (i *MapIndex) LongestTotalPath() (from, to *Page, cost int) {
+	maxCost := 0
+	var maxFrom *Page
+	var maxTo *Page
+
+	for _, from := range i.index {
+		to, cost := i.LongestPath(from)
+		if cost > maxCost {
+			maxFrom = from
+			maxTo = to
+		}
+	}
+
+	return maxFrom, maxTo, maxCost
 }
 
 func (i *MapIndex) BatchProcess(data map[string][]string) {

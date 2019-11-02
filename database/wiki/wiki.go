@@ -27,9 +27,7 @@ type Revision struct {
 
 type Result map[string][]string
 
-func Process(r io.ReadCloser) (Result, error) {
-	defer r.Close()
-
+func Process(r io.Reader, count *int) (Result, error) {
 	result := Result{}
 
 	decoder := xml.NewDecoder(r)
@@ -53,6 +51,7 @@ func Process(r io.ReadCloser) (Result, error) {
 					title := page.Title
 					content := page.Revision[0].Text
 					result[title] = parseLinks(content)
+					*count++
 				}
 			}
 		}

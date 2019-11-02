@@ -2,13 +2,15 @@ package main
 
 import (
 	"WikiIndex/app"
+	"compress/bzip2"
 	"fmt"
 	"log"
 	"os"
 )
 
 
-const filename = "testdata/simplewiki-20170820-pages-meta-current.xml"
+const filename = "testdata/enwiki-20190101-pages-articles-multistream.xml.bz2"
+//const filename = "testdata/simplewiki-20170820-pages-meta-current.xml"
 //const filename = "testdata/sample.xml"
 
 
@@ -26,10 +28,13 @@ func run() error {
 		return err
 	}
 
+	r := bzip2.NewReader(f)
+
 	go func() {
-		if err = app.AddWikiIndex(f); err != nil {
+		if err = app.AddWikiIndex(r); err != nil {
 			fmt.Println(err)
 		}
+		f.Close()
 	}()
 
 	return app.Serve()
