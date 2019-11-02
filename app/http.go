@@ -38,6 +38,40 @@ func (app *App) Serve() error {
 		})
 	})
 
+	r.GET("/path", func(c *gin.Context) {
+
+		from, err := app.index.Get(c.Query("from"))
+		if err != nil {
+			c.JSON(404, gin.H{
+				"error": err.Error(),
+			})
+			return
+		}
+
+		to, err := app.index.Get(c.Query("to"))
+		if err != nil {
+			c.JSON(404, gin.H{
+				"error": err.Error(),
+			})
+			return
+		}
+
+		cost, err := app.index.Path(from, to)
+		if err != nil {
+			c.JSON(404, gin.H{
+				"error": err.Error(),
+			})
+			return
+		}
+
+
+		c.JSON(200, gin.H{
+			"from": to.Title,
+			"to": from.Title,
+			"cost": cost,
+		})
+	})
+
 	return r.Run(":8080")
 }
 

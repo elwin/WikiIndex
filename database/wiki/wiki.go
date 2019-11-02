@@ -2,7 +2,6 @@ package wiki
 
 import (
 	"encoding/xml"
-	"fmt"
 	"io"
 	"regexp"
 	"strings"
@@ -10,8 +9,9 @@ import (
 	"github.com/pkg/errors"
 )
 
-const expression = `\[\[([^\]\[:]+)\|([^\]\[:]+)\]\]`
-
+const (
+	linkExpression = `\[\[([^\]\[:]+)\]\]`
+)
 
 type Page struct {
 	XMLName  xml.Name   `xml:"page"`
@@ -52,9 +52,6 @@ func Process(r io.ReadCloser) (Result, error) {
 				if len(page.Revision) > 0 {
 					title := page.Title
 					content := page.Revision[0].Text
-					if page.Title == "Architecture" {
-						fmt.Println("yoooo")
-					}
 					result[title] = parseLinks(content)
 				}
 			}
@@ -64,9 +61,8 @@ func Process(r io.ReadCloser) (Result, error) {
 	return result, nil
 }
 
-
 func parseLinks(content string) []string {
-	urlMatcher := regexp.MustCompile(expression)
+	urlMatcher := regexp.MustCompile(linkExpression)
 
 	matches := urlMatcher.FindAllString(content, -1)
 
@@ -87,5 +83,3 @@ func parseLinks(content string) []string {
 
 	return references
 }
-
-

@@ -1,14 +1,14 @@
 package database
 
 import (
-	"errors"
 	"fmt"
-	_ "github.com/pkg/errors"
+	"github.com/pkg/errors"
 	"strings"
 )
 
 type Index interface {
 	Get(title string) (*Page, error)
+	Path(from, to *Page) (int, error)
 	BatchProcess(map[string][]string)
 	Size() int
 }
@@ -28,7 +28,7 @@ func (i *MapIndex) Get(title string) (*Page, error) {
 
 	page, ok := i.index[title]
 	if !ok {
-		return nil, errors.New("page not found")
+		return nil, errors.Errorf("page \"%s\" not found", title)
 	}
 
 	return page, nil
@@ -45,22 +45,50 @@ func (i *MapIndex) add(title string) {
 	i.index[title] = page
 }
 
-//func (i *MapIndex) Reindex() {
-//	for _, page := range i.index {
-//		i.process(page)
-//	}
-//}
-//
-//func (i *MapIndex) process(p *Page) {
-//	for _, title := range p.parseLinks() {
-//		if ref, ok := i.index[title]; ok {
-//			p.references = append(p.references, ref)
-//		}
-//	}
-//}
-
 func (i *MapIndex) Size() int {
 	return len(i.index)
+}
+
+func (i *MapIndex) Path(a, b *Page) (int, error) {
+	cost := map[*Page]int{}
+
+	queue := make([]*Page, 0)
+	queue = append(queue, a)
+
+	for {
+		if len(queue) == 0 {
+			return 0, errors.New("no path found")
+		}
+
+		current := queue[0]
+		queue = queue[1:]
+
+		// Found neighbour
+		if current == b {
+			break
+		}
+
+		currentCost := cost[current]
+
+		for neighbour := range current.References {
+
+			// Already visited
+			if cost[neighbour] != 0 {
+				continue
+			}
+
+			// Assign cost
+			cost[neighbour] = currentCost + 1
+
+			// Add the queue
+			queue = append(queue, neighbour)
+		}
+	}
+
+	path := make([]*Page, 0)
+	path = append(path, a, b)
+
+	return cost[b], nil
 }
 
 func (i *MapIndex) BatchProcess(data map[string][]string) {
