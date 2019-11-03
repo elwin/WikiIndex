@@ -10,15 +10,15 @@
                 <div class="form-row align-items-end">
                     <div class="col-5">
                         <label for="from">Starting Page</label>
-                        <input name="from" type="text" class="form-control" placeholder="Goths">
+                        <input name="from" type="text" class="form-control" placeholder="Goths" value="{{ result.FromKey }}">
                     </div>
                     <div class="col-5">
                         <label for="to">Destination Page Page</label>
-                        <input name="to" type="text" class="form-control" placeholder="Architecture">
+                        <input name="to" type="text" class="form-control" placeholder="Architecture" value="{{ result.ToKey}}">
                     </div>
 
                     <div class="col-2">
-                        <button type="submit" class="btn btn-primary">Submit</button>
+                        <button type="submit" class="btn btn-primary">Find Path</button>
                     </div>
                 </div>
             </form>
@@ -32,7 +32,7 @@
         </div>
         <ul class="list-group list-group-flush">
             {% for ref in result.Path %}
-            <li class="list-group-item"><a href="/page/{{ ref.Slug }}">{{ ref.Title }}</a></li>
+            <li class="list-group-item"><a href="/page?title={{ ref.Slug }}">{{ ref.Title }}</a></li>
             {% endfor %}
         </ul>
     </div>

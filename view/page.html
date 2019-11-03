@@ -2,45 +2,77 @@
 
 {% block content %}
 <main class="container">
-    <h1 class="mb-4">{{ title }}</h1>
+    <h1 class="mb-4">Pages</h1>
 
-    {% comment %}
     <div class="card mb-4">
         <div class="card-body">
-            <h5 class="card-title">Longest Distance</h5>
-            <p class="card-text"><a href="/page/{{ maxTarget.Slug }}">{{ maxTarget.Title }}</a>: {{ maxDistance }} hops</p>
+            <form>
+                <div class="form-row align-items-end">
+                    <div class="col-5">
+                        <label for="from">Search Page</label>
+                        <input name="title" type="text" class="form-control" placeholder="Goths" value="{{ result.SearchKey }}">
+                    </div>
+
+                    <div class="col-2">
+                        <button type="submit" class="btn btn-primary">Search</button>
+                    </div>
+                </div>
+            </form>
         </div>
     </div>
-    {% endcomment %}
 
-    <div class="row">
 
-        <div class="col-6">
-            <div class="card">
-                <div class="card-header font-weight-bold">
-                    References To
-                </div>
-                <ul class="list-group list-group-flush">
-                    {% for reference in referencesTo %}
-                    <li class="list-group-item"><a href="/page/{{ reference.Slug }}">{{ reference.Title }}</a></li>
-                    {% endfor %}
-                </ul>
+    {% if result.Set %}
+        {% if !result.Found %}
+
+        No results found
+
+        {% else %}
+
+        <h1 class="mb-4">{{ result.Page.Title }}</h1>
+
+        {% comment %}
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">Longest Distance</h5>
+                <p class="card-text"><a href="/page?title={{ maxTarget.Slug }}">{{ maxTarget.Title }}</a>: {{ maxDistance }} hops
+                </p>
             </div>
         </div>
+        {% endcomment %}
 
-        <div class="col-6">
-            <div class="card">
-                <div class="card-header font-weight-bold">
-                    Referenced By
+        <div class="row">
+
+            <div class="col-6">
+                <div class="card">
+                    <div class="card-header font-weight-bold">
+                        Referenced By
+                    </div>
+                    <ul class="list-group list-group-flush">
+                        {% for reference in result.Page.ReferencedBy %}
+                        <li class="list-group-item"><a href="/page?title={{ reference.Slug }}">{{ reference.Title }}</a></li>
+                        {% endfor %}
+                    </ul>
                 </div>
-                <ul class="list-group list-group-flush">
-                    {% for reference in referencedBy %}
-                    <li class="list-group-item"><a href="/page/{{ reference.Slug }}">{{ reference.Title }}</a></li>
-                    {% endfor %}
-                </ul>
             </div>
+
+            <div class="col-6">
+                <div class="card">
+                    <div class="card-header font-weight-bold">
+                        References To
+                    </div>
+                    <ul class="list-group list-group-flush">
+                        {% for reference in result.Page.ReferencesTo %}
+                        <li class="list-group-item"><a href="/page?title={{ reference.Slug }}">{{ reference.Title }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+
         </div>
-    </div>
+
+        {% endif %}
+    {% endif %}
 
 </main>
 {% endblock %}
