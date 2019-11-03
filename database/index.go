@@ -2,17 +2,18 @@ package database
 
 import (
 	"fmt"
+	"github.com/gosimple/slug"
 	"github.com/pkg/errors"
-	"strings"
 )
 
 type Index interface {
 	Get(title string) (Pageable, bool)
-	Path(from, to Pageable) (int, error)
+	Path(from, to Pageable) ([]Pageable, error)
 	LongestPath(from Pageable) (Pageable, int)
 	LongestTotalPath() (from, to Pageable, cost int)
 	BatchProcess(map[string][]string)
 	Size() int
+	Slugify(string) string
 }
 
 type MapIndex struct {
@@ -26,7 +27,7 @@ func New() *MapIndex {
 }
 
 func (i *MapIndex) Get(title string) (Pageable, bool) {
-	title = i.normalize(title)
+	title = i.Slugify(title)
 
 	page, ok := i.index[title]
 	if !ok {
@@ -37,23 +38,16 @@ func (i *MapIndex) Get(title string) (Pageable, bool) {
 }
 
 func (i *MapIndex) add(title string) {
-	title = i.normalize(title)
+	page := NewPage(title, i)
 
-	page := &Page{
-		title,
-		make(map[string]bool),
-		make(map[string]bool),
-		i,
-	}
-
-	i.index[title] = page
+	i.index[page.Slug()] = page
 }
 
 func (i *MapIndex) Size() int {
 	return len(i.index)
 }
 
-func (i *MapIndex) Path(from, to Pageable) (int, error) {
+func (i *MapIndex) Path(from, to Pageable) ([]Pageable, error) {
 	cost := map[Pageable]int{}
 
 	queue := make([]Pageable, 0)
@@ -61,7 +55,7 @@ func (i *MapIndex) Path(from, to Pageable) (int, error) {
 
 	for {
 		if len(queue) == 0 {
-			return 0, errors.New("no path found")
+			return nil, errors.New("no path found")
 		}
 
 		current := queue[0]
@@ -90,13 +84,37 @@ func (i *MapIndex) Path(from, to Pageable) (int, error) {
 	}
 
 	path := make([]Pageable, 0)
-	path = append(path, from, to)
+	path = append(path, to)
 
-	return cost[to], nil
+	for {
+
+		current := path[len(path) - 1]
+		nextCost := cost[current] - 1
+
+		if nextCost == 0 {
+			path = append(path, from)
+			break
+		}
+
+		for _, backref := range current.ReferencedBy() {
+			if cost[backref] == nextCost {
+				path = append(path, backref)
+				break
+			}
+		}
+	}
+
+	// Reverse path
+	for i, j := 0, len(path)-1; i < j; i, j = i+1, j-1 {
+		path[i], path[j] = path[j], path[i]
+	}
+
+	return path, nil
 }
 
 func (i *MapIndex) LongestPath(from Pageable) (Pageable, int) {
 	cost := map[Pageable]int{}
+	cost[from] = 0
 
 	queue := make([]Pageable, 0)
 	queue = append(queue, from)
@@ -114,7 +132,7 @@ func (i *MapIndex) LongestPath(from Pageable) (Pageable, int) {
 		for _, neighbour := range current.ReferencesTo() {
 
 			// Already visited
-			if cost[neighbour] != 0 {
+			if _, ok := cost[neighbour]; ok {
 				continue
 			}
 
@@ -147,6 +165,7 @@ func (i *MapIndex) LongestTotalPath() (from, to Pageable, cost int) {
 	for _, from := range i.index {
 		to, cost := i.LongestPath(from)
 		if cost > maxCost {
+			maxCost = cost
 			maxFrom = from
 			maxTo = to
 		}
@@ -187,7 +206,8 @@ func (i *MapIndex) BatchProcess(data map[string][]string) {
 	}
 }
 
-func (i *MapIndex) normalize(title string) string {
-	title = strings.TrimSpace(title)
-	return strings.ToLower(title)
+func (i *MapIndex) Slugify(title string) string {
+	//title = strings.TrimSpace(title)
+	//title = strings.ToLower(title)
+	return slug.Make(title)
 }
