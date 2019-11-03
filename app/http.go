@@ -8,7 +8,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (a *App) Serve() error {
+func (a *App) Serve(address string) error {
 	r := gin.Default()
 
 	r.GET("/", a.Root())
@@ -17,7 +17,7 @@ func (a *App) Serve() error {
 	r.GET("/longest", a.Longest())
 	//r.GET("/loooongest", a.LongestOverall())
 
-	return r.Run(":8080")
+	return r.Run(address)
 }
 
 func (a *App) Root() gin.HandlerFunc {

@@ -7,14 +7,13 @@ import (
 	"log"
 	"os"
 
-	_ "github.com/flosch/pongo2"
+	"github.com/jessevdk/go-flags"
 )
 
-
-//const filename = "testdata/enwiki-20190101-pages-articles-multistream.xml.bz2"
-const filename = "testdata/simplewiki-20170820-pages-meta-current.xml.bz2"
-//const filename = "testdata/sample.xml"
-
+var options struct {
+	Filename string `short:"i" long:"input" description:"Wikipedia XML dump (something ending in .xml.bz2)" required:"true"`
+	Address  string `short:"h" long:"http" description:"HTTP address" default:":8080"`
+}
 
 func main() {
 	if err := run(); err != nil {
@@ -23,9 +22,14 @@ func main() {
 }
 
 func run() error {
+	_, err := flags.Parse(&options)
+	if err != nil {
+		os.Exit(1)
+	}
+
 	app := app.New()
 
-	f, err := os.Open(filename)
+	f, err := os.Open(options.Filename)
 	if err != nil {
 		return err
 	}
@@ -39,5 +43,5 @@ func run() error {
 		f.Close()
 	}()
 
-	return app.Serve()
+	return app.Serve(options.Address)
 }
