@@ -33,7 +33,9 @@ func (a *App) Root() gin.HandlerFunc {
 		//
 		//})
 
-		err := tpl.ExecuteWriter(pongo2.Context{}, c.Writer)
+		err := tpl.ExecuteWriter(pongo2.Context{
+			"indexed": *a.Count,
+		}, c.Writer)
 		if err != nil {
 			fmt.Println(err)
 		}
