@@ -6,11 +6,13 @@ import (
 	"fmt"
 	"log"
 	"os"
+
+	_ "github.com/flosch/pongo2"
 )
 
 
-const filename = "testdata/enwiki-20190101-pages-articles-multistream.xml.bz2"
-//const filename = "testdata/simplewiki-20170820-pages-meta-current.xml"
+//const filename = "testdata/enwiki-20190101-pages-articles-multistream.xml.bz2"
+const filename = "testdata/simplewiki-20170820-pages-meta-current.xml.bz2"
 //const filename = "testdata/sample.xml"
 
 

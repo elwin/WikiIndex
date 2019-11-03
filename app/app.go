@@ -8,7 +8,7 @@ import (
 )
 
 type App struct {
-	index database.Index
+	Index database.Index
 	Count *int
 }
 
@@ -28,7 +28,7 @@ func (a *App) AddWikiIndex (r io.Reader) error {
 	}
 
 	fmt.Println("Processing entries")
-	a.index.BatchProcess(x)
+	a.Index.BatchProcess(x)
 
 	return nil
 }

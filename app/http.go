@@ -1,89 +1,106 @@
 package app
 
-import "github.com/gin-gonic/gin"
+import (
+	"fmt"
+	"github.com/gin-gonic/gin"
+)
 
-func (app *App) Serve() error {
+func (a *App) Serve() error {
 	r := gin.Default()
 
-	r.GET("/", func(c *gin.Context) {
+	r.GET("/", a.Root())
+	r.GET("/page/:title", a.Page())
+	r.GET("/path", a.Path())
+	r.GET("/longest", a.Longest())
+	r.GET("/loooongest", a.LongestOverall())
+
+	return r.Run(":8080")
+}
+
+func (a *App) Root() gin.HandlerFunc {
+	return func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"message": "all good",
+			"size":    a.Count,
 		})
-	})
-	
-	r.GET("/size", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"size": app.Count,
-		})
-	})
+	}
+}
 
-	r.GET("/page/:title", func(c *gin.Context) {
+func (a *App) Page() gin.HandlerFunc {
+	return func(c *gin.Context) {
 		title := c.Param("title")
-		p, err := app.index.Get(title)
-		if err != nil {
+		p, ok := a.Index.Get(title)
+		if !ok {
 			c.JSON(404, gin.H{
-				"error": err.Error(),
+				"error": fmt.Sprintf("page '%s' not found", title),
 			})
 			return
 		}
 
-		references := make([]string, 0)
-		for reference := range p.References {
-			references = append(references, reference.Title)
+		referencesTo := make([]string, 0)
+		for _, reference := range p.ReferencesTo() {
+			referencesTo = append(referencesTo, reference.Title())
+		}
+
+		referencedBy := make([]string, 0)
+		for _, reference := range p.ReferencedBy() {
+			referencedBy = append(referencedBy, reference.Title())
 		}
 
 		c.JSON(200, gin.H{
-			"title": p.Title,
-			"references": references,
+			"title":        p.Title(),
+			"referencesTo": referencesTo,
+			"referencedBy": referencedBy,
 		})
-	})
+	}
+}
 
-	r.GET("/path", func(c *gin.Context) {
+func (a *App) Path() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		from, ok := a.Index.Get(c.Query("from"))
+		if !ok {
+			c.JSON(404, gin.H{
+				"error": fmt.Sprintf("page '%s' not found", from),
+			})
+			return
+		}
 
-		from, err := app.index.Get(c.Query("from"))
+		to, ok := a.Index.Get(c.Query("to"))
+		if !ok {
+			c.JSON(404, gin.H{
+				"error": fmt.Sprintf("page '%s' not found", to),
+			})
+			return
+		}
+
+		cost, err := a.Index.Path(from, to)
 		if err != nil {
 			c.JSON(404, gin.H{
 				"error": err.Error(),
 			})
 			return
 		}
-
-		to, err := app.index.Get(c.Query("to"))
-		if err != nil {
-			c.JSON(404, gin.H{
-				"error": err.Error(),
-			})
-			return
-		}
-
-		cost, err := app.index.Path(from, to)
-		if err != nil {
-			c.JSON(404, gin.H{
-				"error": err.Error(),
-			})
-			return
-		}
-
 
 		c.JSON(200, gin.H{
-			"from": from.Title,
-			"to": to.Title,
+			"from": from.Title(),
+			"to":   to.Title(),
 			"cost": cost,
 		})
-	})
+	}
+}
 
-	r.GET("/longest", func(c *gin.Context) {
-
-		from, err := app.index.Get(c.Query("from"))
-		if err != nil {
+func (a *App) Longest() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		from, ok := a.Index.Get(c.Query("from"))
+		to, ok := a.Index.Get(c.Query("to"))
+		if !ok {
 			c.JSON(404, gin.H{
-				"error": err.Error(),
+				"error": fmt.Sprintf("page '%s' not found", from),
 			})
 			return
 		}
 
-
-		to, cost := app.index.LongestPath(from)
+		to, cost := a.Index.LongestPath(from)
 		if to == nil {
 			c.JSON(404, gin.H{
 				"error": "no path found :(",
@@ -91,25 +108,22 @@ func (app *App) Serve() error {
 			return
 		}
 
-
 		c.JSON(200, gin.H{
-			"from": from.Title,
-			"to":   to.Title,
+			"from": from.Title(),
+			"to":   to.Title(),
 			"cost": cost,
 		})
-	})
-
-	r.GET("/loooongest", func(c *gin.Context) {
-
-		from, to, cost := app.index.LongestTotalPath()
-
-		c.JSON(200, gin.H{
-			"from": from.Title,
-			"to":   to.Title,
-			"cost": cost,
-		})
-	})
-
-	return r.Run(":8080")
+	}
 }
 
+func (a *App) LongestOverall() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		from, to, cost := a.Index.LongestTotalPath()
+
+		c.JSON(200, gin.H{
+			"from": from.Title(),
+			"to":   to.Title(),
+			"cost": cost,
+		})
+	}
+}

@@ -7,10 +7,10 @@ import (
 )
 
 type Index interface {
-	Get(title string) (*Page, error)
-	Path(from, to *Page) (int, error)
-	LongestPath(from *Page) (*Page, int)
-	LongestTotalPath() (from, to *Page, cost int)
+	Get(title string) (Pageable, bool)
+	Path(from, to Pageable) (int, error)
+	LongestPath(from Pageable) (Pageable, int)
+	LongestTotalPath() (from, to Pageable, cost int)
 	BatchProcess(map[string][]string)
 	Size() int
 }
@@ -25,15 +25,15 @@ func New() *MapIndex {
 	}
 }
 
-func (i *MapIndex) Get(title string) (*Page, error) {
+func (i *MapIndex) Get(title string) (Pageable, bool) {
 	title = i.normalize(title)
 
 	page, ok := i.index[title]
 	if !ok {
-		return nil, errors.Errorf("page \"%s\" not found", title)
+		return nil, false
 	}
 
-	return page, nil
+	return page, true
 }
 
 func (i *MapIndex) add(title string) {
@@ -41,7 +41,9 @@ func (i *MapIndex) add(title string) {
 
 	page := &Page{
 		title,
-		make(map[*Page]bool),
+		make(map[string]bool),
+		make(map[string]bool),
+		i,
 	}
 
 	i.index[title] = page
@@ -51,10 +53,10 @@ func (i *MapIndex) Size() int {
 	return len(i.index)
 }
 
-func (i *MapIndex) Path(from, to *Page) (int, error) {
-	cost := map[*Page]int{}
+func (i *MapIndex) Path(from, to Pageable) (int, error) {
+	cost := map[Pageable]int{}
 
-	queue := make([]*Page, 0)
+	queue := make([]Pageable, 0)
 	queue = append(queue, from)
 
 	for {
@@ -72,7 +74,7 @@ func (i *MapIndex) Path(from, to *Page) (int, error) {
 
 		currentCost := cost[current]
 
-		for neighbour := range current.References {
+		for _, neighbour := range current.ReferencesTo() {
 
 			// Already visited
 			if cost[neighbour] != 0 {
@@ -87,16 +89,16 @@ func (i *MapIndex) Path(from, to *Page) (int, error) {
 		}
 	}
 
-	path := make([]*Page, 0)
+	path := make([]Pageable, 0)
 	path = append(path, from, to)
 
 	return cost[to], nil
 }
 
-func (i *MapIndex) LongestPath(from *Page) (*Page, int) {
-	cost := map[*Page]int{}
+func (i *MapIndex) LongestPath(from Pageable) (Pageable, int) {
+	cost := map[Pageable]int{}
 
-	queue := make([]*Page, 0)
+	queue := make([]Pageable, 0)
 	queue = append(queue, from)
 
 	for {
@@ -109,7 +111,7 @@ func (i *MapIndex) LongestPath(from *Page) (*Page, int) {
 
 		currentCost := cost[current]
 
-		for neighbour := range current.References {
+		for _, neighbour := range current.ReferencesTo() {
 
 			// Already visited
 			if cost[neighbour] != 0 {
@@ -125,7 +127,7 @@ func (i *MapIndex) LongestPath(from *Page) (*Page, int) {
 	}
 
 	maxCost := 0
-	var node *Page
+	var node Pageable
 
 	for n, c := range cost {
 		if c > maxCost {
@@ -137,10 +139,10 @@ func (i *MapIndex) LongestPath(from *Page) (*Page, int) {
 	return node, maxCost
 }
 
-func (i *MapIndex) LongestTotalPath() (from, to *Page, cost int) {
+func (i *MapIndex) LongestTotalPath() (from, to Pageable, cost int) {
 	maxCost := 0
-	var maxFrom *Page
-	var maxTo *Page
+	var maxFrom Pageable
+	var maxTo Pageable
 
 	for _, from := range i.index {
 		to, cost := i.LongestPath(from)
@@ -164,19 +166,24 @@ func (i *MapIndex) BatchProcess(data map[string][]string) {
 	// Add references to entries
 	fmt.Println("Adding References")
 	for title, references := range data {
-		p, err := i.Get(title)
-		if err != nil {
+		p, ok := i.Get(title)
+		if !ok {
 			continue
 		}
 
-		for _, reference := range references {
-			r, err := i.Get(reference)
-			if err != nil {
+		for _, referenceTitle := range references {
+			reference, ok := i.Get(referenceTitle)
+			if !ok {
 				continue
 			}
 
-			p.References[r] = true
+			// Add reference
+			p.AddReferenceTo(reference)
+
+			// Add back reference
+			reference.AddReferenceBy(p)
 		}
+
 	}
 }
 
