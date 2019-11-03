@@ -44,7 +44,7 @@ func (a *App) Page() gin.HandlerFunc {
 			return
 		}
 
-		target, distance := a.Index.LongestPath(p)
+		//target, distance := a.Index.LongestPath(p)
 
 		tpl := pongo2.Must(pongo2.FromFile("view/page.html"))
 		err := tpl.ExecuteWriter(pongo2.Context{
@@ -52,8 +52,8 @@ func (a *App) Page() gin.HandlerFunc {
 			"slug":         p.Slug(),
 			"referencesTo": p.ReferencesTo(),
 			"referencedBy": p.ReferencedBy(),
-			"maxTarget":    target,
-			"maxDistance":  distance,
+			//"maxTarget":    target,
+			//"maxDistance":  distance,
 		}, c.Writer)
 		if err != nil {
 			fmt.Println(err)

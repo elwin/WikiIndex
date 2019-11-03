@@ -4,12 +4,14 @@
 <main class="container">
     <h1 class="mb-4">{{ title }}</h1>
 
+    {% comment %}
     <div class="card mb-4">
         <div class="card-body">
             <h5 class="card-title">Longest Distance</h5>
             <p class="card-text"><a href="/page/{{ maxTarget.Slug }}">{{ maxTarget.Title }}</a>: {{ maxDistance }} hops</p>
         </div>
     </div>
+    {% endcomment %}
 
     <div class="row">
 
