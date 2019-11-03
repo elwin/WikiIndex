@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/flosch/pongo2"
 	"github.com/gin-gonic/gin"
+	"github.com/pkg/errors"
 )
 
 func (a *App) Serve() error {
@@ -14,7 +15,7 @@ func (a *App) Serve() error {
 	r.GET("/page", a.Page())
 	r.GET("/path", a.Path())
 	r.GET("/longest", a.Longest())
-	r.GET("/loooongest", a.LongestOverall())
+	//r.GET("/loooongest", a.LongestOverall())
 
 	return r.Run(":8080")
 }
@@ -22,10 +23,11 @@ func (a *App) Serve() error {
 func (a *App) Root() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		tpl := pongo2.Must(pongo2.FromFile("view/index.html"))
-		tpl = tpl
 
 		err := tpl.ExecuteWriter(pongo2.Context{
 			"indexed": *a.Count,
+			"maxReferenced": a.Index.MostReferenced(),
+			"minReferenced": a.Index.LeastReferenced(),
 		}, c.Writer)
 		if err != nil {
 			fmt.Println(err)
@@ -82,24 +84,20 @@ func (a *App) Path() gin.HandlerFunc {
 			result.ToKey = to
 			result.Set = true
 
-			from, ok := a.Index.Get(from)
-			if !ok {
-				c.JSON(404, gin.H{
-					"error": fmt.Sprintf("page '%s' not found", from),
-				})
-				return
-			}
-
 			to, ok := a.Index.Get(to)
 			if !ok {
-				c.JSON(404, gin.H{
-					"error": fmt.Sprintf("page '%s' not found", to),
-				})
-				return
+				result.Error = errors.Errorf("Page '%s' not found.", result.ToKey)
 			}
 
-			result.Path, result.Error = a.Index.Path(from, to)
-			result.Len = len(result.Path)
+			from, ok := a.Index.Get(from)
+			if !ok {
+				result.Error = errors.Errorf("Page '%s' not found.", result.FromKey)
+			}
+
+			if result.Error == nil {
+				result.Path, result.Error = a.Index.Path(from, to)
+				result.Len = len(result.Path)
+			}
 		}
 
 		tpl := pongo2.Must(pongo2.FromFile("view/path.html"))
@@ -107,12 +105,6 @@ func (a *App) Path() gin.HandlerFunc {
 		if err != nil {
 			fmt.Println(err)
 		}
-
-		//c.JSON(200, gin.H{
-		//	"from": from.Title(),
-		//	"to":   to.Title(),
-		//	"cost": cost,
-		//})
 	}
 }
 

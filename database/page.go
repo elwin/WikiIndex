@@ -20,7 +20,7 @@ type Page struct {
 func NewPage(title string, i Index) *Page {
 	return  &Page{
 		title,
-		i.Slugify(title),
+		i.UniqueSlug(title),
 		make(map[string]bool),
 		make(map[string]bool),
 		i,

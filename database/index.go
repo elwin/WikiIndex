@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"github.com/gosimple/slug"
 	"github.com/pkg/errors"
+	"math"
+	"strconv"
+	"sync"
 )
 
 type Index interface {
@@ -12,22 +15,31 @@ type Index interface {
 	LongestPath(from Pageable) (Pageable, int)
 	LongestTotalPath() (from, to Pageable, cost int)
 	BatchProcess(map[string][]string)
+	MostReferenced() Pageable
+	LeastReferenced() Pageable
 	Size() int
-	Slugify(string) string
+	Slug(string) string
+	UniqueSlug(string) string
 }
 
 type MapIndex struct {
-	index map[string]*Page
+	index           map[string]*Page
+	mostReferenced  *Page
+	leastReferenced *Page
+	sync.RWMutex
 }
 
 func New() *MapIndex {
 	return &MapIndex{
 		map[string]*Page{},
+		nil,
+		nil,
+		sync.RWMutex{},
 	}
 }
 
 func (i *MapIndex) Get(title string) (Pageable, bool) {
-	title = i.Slugify(title)
+	title = i.Slug(title)
 
 	page, ok := i.index[title]
 	if !ok {
@@ -55,7 +67,7 @@ func (i *MapIndex) Path(from, to Pageable) ([]Pageable, error) {
 
 	for {
 		if len(queue) == 0 {
-			return nil, errors.New("no path found")
+			return nil, errors.Errorf("No path found between '%s' and %s'.", from.Title(), to.Title())
 		}
 
 		current := queue[0]
@@ -88,7 +100,7 @@ func (i *MapIndex) Path(from, to Pageable) ([]Pageable, error) {
 
 	for {
 
-		current := path[len(path) - 1]
+		current := path[len(path)-1]
 		nextCost := cost[current] - 1
 
 		if nextCost == 0 {
@@ -175,6 +187,8 @@ func (i *MapIndex) LongestTotalPath() (from, to Pageable, cost int) {
 }
 
 func (i *MapIndex) BatchProcess(data map[string][]string) {
+	i.Lock()
+	defer i.Unlock()
 
 	// Add all entries to database
 	fmt.Println("Adding entries")
@@ -206,8 +220,58 @@ func (i *MapIndex) BatchProcess(data map[string][]string) {
 	}
 }
 
-func (i *MapIndex) Slugify(title string) string {
-	//title = strings.TrimSpace(title)
-	//title = strings.ToLower(title)
+func (i *MapIndex) MostReferenced() Pageable {
+	if i.mostReferenced == nil {
+		i.RLock()
+		defer i.RUnlock()
+
+		maxReferences := 0
+
+		for _, page := range i.index {
+			if len(page.ReferencedBy()) > maxReferences {
+				maxReferences = len(page.ReferencedBy())
+				i.mostReferenced = page
+			}
+		}
+	}
+
+	return i.mostReferenced
+}
+
+func (i *MapIndex) LeastReferenced() Pageable {
+	if i.leastReferenced == nil {
+		i.RLock()
+		defer i.RUnlock()
+
+		minReferences := math.MaxInt64
+
+		for _, page := range i.index {
+			if len(page.ReferencedBy()) < minReferences {
+				minReferences = len(page.ReferencedBy())
+				i.leastReferenced = page
+			}
+		}
+	}
+
+	return i.leastReferenced
+}
+
+func (i *MapIndex) Slug(title string) string {
 	return slug.Make(title)
+}
+
+func (i *MapIndex) UniqueSlug(title string) string {
+	title = i.Slug(title)
+	newTitle := title
+
+	j := 2
+
+	for {
+		if _, ok := i.Get(newTitle); !ok {
+			return newTitle
+		}
+
+		newTitle = title + "-" + strconv.Itoa(j)
+		j++
+	}
 }

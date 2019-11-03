@@ -2,7 +2,7 @@
 
 {% block content %}
 <main class="container">
-    <h1 class="mb-4">Shortest Path</h1>
+    <h1 class="mb-4">Page Distance</h1>
 
     <div class="card mb-4">
         <div class="card-body">
@@ -26,16 +26,20 @@
     </div>
 
     {% if result.Set %}
-    <div class="card">
-        <div class="card-header font-weight-bold">
-            Shortest Path
-        </div>
-        <ul class="list-group list-group-flush">
-            {% for ref in result.Path %}
-            <li class="list-group-item"><a href="/page?title={{ ref.Slug }}">{{ ref.Title }}</a></li>
-            {% endfor %}
-        </ul>
-    </div>
+        {% if result.Error %}
+            <p>{{ result.Error.Error }}</p>
+        {% else %}
+            <div class="card">
+                <div class="card-header font-weight-bold">
+                    Shortest Path: {{ result.Path | length - 1}} Hops
+                </div>
+                <ul class="list-group list-group-flush">
+                    {% for ref in result.Path %}
+                    <li class="list-group-item"><a href="/page?title={{ ref.Slug }}">{{ ref.Title }}</a></li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
     {% endif %}
 
 </main>

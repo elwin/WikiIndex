@@ -48,11 +48,17 @@
                     <div class="card-header font-weight-bold">
                         Referenced By
                     </div>
-                    <ul class="list-group list-group-flush">
-                        {% for reference in result.Page.ReferencedBy %}
-                        <li class="list-group-item"><a href="/page?title={{ reference.Slug }}">{{ reference.Title }}</a></li>
-                        {% endfor %}
-                    </ul>
+
+                        <ul class="list-group list-group-flush">
+                            {% if result.Page.ReferencedBy | length == 0 %}
+                                <li class="list-group-item">Not referenced by any other page</li>
+                            {% endif %}
+
+                            {% for reference in result.Page.ReferencedBy %}
+                            <li class="list-group-item"><a href="/page?title={{ reference.Slug }}">{{ reference.Title }}</a></li>
+                            {% endfor %}
+                        </ul>
+
                 </div>
             </div>
 
@@ -62,6 +68,10 @@
                         References To
                     </div>
                     <ul class="list-group list-group-flush">
+                        {% if result.Page.ReferencesTo | length == 0 %}
+                            <li class="list-group-item">Doesn't reference any other page</li>
+                        {% endif %}
+
                         {% for reference in result.Page.ReferencesTo %}
                         <li class="list-group-item"><a href="/page?title={{ reference.Slug }}">{{ reference.Title }}</a></li>
                         {% endfor %}

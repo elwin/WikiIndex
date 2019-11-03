@@ -30,5 +30,7 @@ func (a *App) AddWikiIndex (r io.Reader) error {
 	fmt.Println("Processing entries")
 	a.Index.BatchProcess(x)
 
+	fmt.Println("Finished processing")
+
 	return nil
 }

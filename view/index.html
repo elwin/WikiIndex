@@ -2,6 +2,85 @@
 
 {% block content %}
 <main class="container">
-    <h1>Wiki Index ({{ indexed }} pages)</h1>
+    <h1>Simple Wiki Index ({{ indexed }} pages)</h1>
+
+    <p class="lead">
+        This project has been created to play around with the Wikipedia dataset. The goal is to calculate the distance
+        between two pages, that is, how many clicks are required to get from one page to the other by only using the
+        links on each page.
+    </p>
+
+    <p class="mb-5">
+        Currently only the the Simple Wikipedia has been indexed. The reason for this is that the entire index
+        (containing page title + references) is stored in memory. Now, to index the English Wikipedia either more memory
+        is required or the data needs to be partially stored on disk (or the memory footprint reduced with another way).
+        You can find the source code on <a href="https://github.com/elwin/WikiIndex">Github</a>.
+
+    </p>
+
+    <div class="row mb-5">
+
+        {% if maxReferenced %}
+        <div class="col-sm-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Most referenced page</h5>
+                    <p class="card-text">
+                        The page <a href="/page?title={{ maxReferenced.Slug }}">{{ maxReferenced.Title }}</a>
+                        has been referenced {{ maxReferenced.ReferencedBy | length }} times.
+                    </p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if minReferenced %}
+        <div class="col-sm-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Least referenced page</h5>
+                    <p class="card-text">
+                        The page <a href="/page?title={{ minReferenced.Slug }}">{{ minReferenced.Title }}</a>
+                        has been referenced {{ minReferenced.ReferencedBy | length }} times.
+                    </p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+
+    <h4>What can you do here?</h4>
+
+    <div class="row">
+
+        <div class="col-sm-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Search for Pages</h5>
+                    <p class="card-text">
+                        Here you can search for all indexed pages.
+                        When you click on a page you can see from which pages it is referenced by
+                        and to which pages it has references.
+                    </p>
+                    <a href="/page" class="btn btn-primary float-right">Search Pages</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Page Distance</h5>
+                    <p class="card-text">
+                        On this page you can get the distance between two pages. That is, how many clicks
+                        are required to get from one page to the other, using only links on the pages.
+                    </p>
+                    <a href="/path" class="btn btn-primary float-right">Find distance</a>
+                </div>
+            </div>
+        </div>
+
+    </div>
 </main>
 {% endblock %}
