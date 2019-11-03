@@ -24,15 +24,6 @@ func (a *App) Root() gin.HandlerFunc {
 		tpl := pongo2.Must(pongo2.FromFile("view/index.html"))
 		tpl = tpl
 
-		//c.JSON(200, gin.H{
-		//	"message": "all good",
-		//	"size":    a.Count,
-		//})
-		//
-		//tpl.Execute(pongo2.Context{
-		//
-		//})
-
 		err := tpl.ExecuteWriter(pongo2.Context{
 			"indexed": *a.Count,
 		}, c.Writer)
@@ -53,35 +44,24 @@ func (a *App) Page() gin.HandlerFunc {
 			return
 		}
 
+		target, distance := a.Index.LongestPath(p)
+
 		tpl := pongo2.Must(pongo2.FromFile("view/page.html"))
 		err := tpl.ExecuteWriter(pongo2.Context{
 			"title":        p.Title(),
 			"slug":         p.Slug(),
 			"referencesTo": p.ReferencesTo(),
 			"referencedBy": p.ReferencedBy(),
+			"maxTarget":    target,
+			"maxDistance":  distance,
 		}, c.Writer)
 		if err != nil {
 			fmt.Println(err)
 		}
-		//
-		//c.JSON(200, gin.H{
-		//	"title":        p.Title(),
-		//	"referencesTo": referencesTo,
-		//	"referencedBy": referencedBy,
-		//})
 	}
 }
 
 func (a *App) Path() gin.HandlerFunc {
-	//return func(c *gin.Context) {
-	//
-	//	tpl := pongo2.Must(pongo2.FromFile("view/path.html"))
-	//	err := tpl.ExecuteWriter(pongo2.Context{}, c.Writer)
-	//	if err != nil {
-	//		fmt.Println(err)
-	//	}
-	//
-	//}
 	return func(c *gin.Context) {
 		result := struct {
 			Set   bool
