@@ -1,5 +1,10 @@
 package database
 
+import (
+	"fmt"
+	"strings"
+)
+
 type Pageable interface {
 	Title() string
 	Slug() string
@@ -7,6 +12,7 @@ type Pageable interface {
 	ReferencedBy() []Pageable
 	AddReferenceTo(page Pageable)
 	AddReferenceBy(page Pageable)
+	WikipediaUrl() string
 }
 
 type Page struct {
@@ -18,7 +24,7 @@ type Page struct {
 }
 
 func NewPage(title string, i Index) *Page {
-	return  &Page{
+	return &Page{
 		title,
 		i.UniqueSlug(title),
 		make(map[string]bool),
@@ -71,4 +77,9 @@ func (p *Page) ReferencedBy() []Pageable {
 
 func (p *Page) AddReferenceBy(page Pageable) {
 	p.referencedBy[page.Slug()] = true
+}
+
+func (p *Page) WikipediaUrl() string {
+	title := strings.Replace(p.title, " ", "_", -1)
+	return fmt.Sprintf("https://simple.wikipedia.org/wiki/%s", title)
 }

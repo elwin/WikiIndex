@@ -3,6 +3,7 @@ package app
 import (
 	"WikiIndex/database"
 	"fmt"
+
 	"github.com/flosch/pongo2"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
@@ -15,6 +16,7 @@ func (a *App) Serve(address string) error {
 	r.GET("/page", a.Page())
 	r.GET("/path", a.Path())
 	r.GET("/longest", a.Longest())
+	r.Static("/assets", "./assets")
 	//r.GET("/loooongest", a.LongestOverall())
 
 	return r.Run(address)
@@ -25,9 +27,10 @@ func (a *App) Root() gin.HandlerFunc {
 		tpl := pongo2.Must(pongo2.FromFile("view/index.html"))
 
 		err := tpl.ExecuteWriter(pongo2.Context{
-			"indexed": *a.Count,
+			"indexed":       *a.Count,
 			"maxReferenced": a.Index.MostReferenced(),
 			"minReferenced": a.Index.LeastReferenced(),
+			"index":         a.Index,
 		}, c.Writer)
 		if err != nil {
 			fmt.Println(err)
@@ -61,6 +64,7 @@ func (a *App) Page() gin.HandlerFunc {
 		tpl := pongo2.Must(pongo2.FromFile("view/page.html"))
 		err := tpl.ExecuteWriter(pongo2.Context{
 			"result": result,
+			"index":  a.Index,
 		}, c.Writer)
 		if err != nil {
 			fmt.Println(err)
@@ -101,7 +105,10 @@ func (a *App) Path() gin.HandlerFunc {
 		}
 
 		tpl := pongo2.Must(pongo2.FromFile("view/path.html"))
-		err := tpl.ExecuteWriter(pongo2.Context{"result": result}, c.Writer)
+		err := tpl.ExecuteWriter(pongo2.Context{
+			"result": result,
+			"index":  a.Index,
+		}, c.Writer)
 		if err != nil {
 			fmt.Println(err)
 		}

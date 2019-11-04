@@ -10,11 +10,13 @@
                 <div class="form-row align-items-end">
                     <div class="col-5">
                         <label for="from">Starting Page</label>
-                        <input name="from" type="text" class="form-control" placeholder="Goths" value="{{ result.FromKey }}">
+                        <input name="from" type="text" class="form-control" placeholder="Starting Page"
+                               value="{{ result.FromKey | default: index.Random.Title  }}">
                     </div>
                     <div class="col-5">
-                        <label for="to">Destination Page Page</label>
-                        <input name="to" type="text" class="form-control" placeholder="Architecture" value="{{ result.ToKey}}">
+                        <label for="to">Destination Page</label>
+                        <input name="to" type="text" class="form-control" placeholder="Destination Page"
+                               value="{{ result.ToKey | default: index.Random.Title }}">
                     </div>
 
                     <div class="col-2">
@@ -26,20 +28,20 @@
     </div>
 
     {% if result.Set %}
-        {% if result.Error %}
-            <p>{{ result.Error.Error }}</p>
-        {% else %}
-            <div class="card">
-                <div class="card-header font-weight-bold">
-                    Shortest Path: {{ result.Path | length - 1}} Hops
-                </div>
-                <ul class="list-group list-group-flush">
-                    {% for ref in result.Path %}
-                    <li class="list-group-item"><a href="/page?title={{ ref.Slug }}">{{ ref.Title }}</a></li>
-                    {% endfor %}
-                </ul>
-            </div>
-        {% endif %}
+    {% if result.Error %}
+    <p>{{ result.Error.Error }}</p>
+    {% else %}
+    <div class="card">
+        <div class="card-header font-weight-bold">
+            Shortest Path: {{ result.Path | length - 1}} Hops
+        </div>
+        <ul class="list-group list-group-flush">
+            {% for ref in result.Path %}
+            <li class="list-group-item"><a href="/page?title={{ ref.Slug }}">{{ ref.Title }}</a></li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
     {% endif %}
 
 </main>

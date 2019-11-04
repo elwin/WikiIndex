@@ -2,12 +2,16 @@ package database
 
 import (
 	"fmt"
-	"github.com/gosimple/slug"
-	"github.com/pkg/errors"
 	"math"
+	"math/rand"
 	"strconv"
 	"sync"
+
+	"github.com/gosimple/slug"
+	"github.com/pkg/errors"
 )
+
+const minReferences = 5
 
 type Index interface {
 	Get(title string) (Pageable, bool)
@@ -17,6 +21,7 @@ type Index interface {
 	BatchProcess(map[string][]string)
 	MostReferenced() Pageable
 	LeastReferenced() Pageable
+	Random() *Page
 	Size() int
 	Slug(string) string
 	UniqueSlug(string) string
@@ -26,12 +31,14 @@ type MapIndex struct {
 	index           map[string]*Page
 	mostReferenced  *Page
 	leastReferenced *Page
+	randomSet       []*Page
 	sync.RWMutex
 }
 
 func New() *MapIndex {
 	return &MapIndex{
 		map[string]*Page{},
+		nil,
 		nil,
 		nil,
 		sync.RWMutex{},
@@ -254,6 +261,20 @@ func (i *MapIndex) LeastReferenced() Pageable {
 	}
 
 	return i.leastReferenced
+}
+
+func (i *MapIndex) Random() *Page {
+	if i.randomSet == nil {
+		for _, page := range i.index {
+			if len(page.ReferencedBy()) > minReferences && len(page.ReferencesTo()) > minReferences {
+				i.randomSet = append(i.randomSet, page)
+			}
+		}
+	}
+
+	rnd := rand.Intn(len(i.randomSet))
+
+	return i.randomSet[rnd]
 }
 
 func (i *MapIndex) Slug(title string) string {
