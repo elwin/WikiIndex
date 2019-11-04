@@ -33,6 +33,21 @@
 
 {% block content %}
 {% endblock %}
+
+<script>
+    function init() {
+        var buttons = document.getElementsByClassName('spinner');
+
+        for (var i = 0; i < buttons.length; i++) {
+            buttons[i].addEventListener('click', function () {
+                this.innerHTML = '<div class="spinner-grow spinner-grow-sm mr-2"></div>' + this.innerHTML;
+            });
+        }
+    }
+
+    window.onload = init();
+</script>
+
 </body>
 
 </html>
