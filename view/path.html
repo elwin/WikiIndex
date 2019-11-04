@@ -2,28 +2,26 @@
 
 {% block content %}
 <main class="container">
-    <h1 class="mb-4">Page Distance</h1>
 
-    <div class="card mb-4">
+    <div class="card mb-5">
         <div class="card-body">
-            <form>
-                <div class="form-row align-items-end">
-                    <div class="col-5">
-                        <label for="from">Starting Page</label>
-                        <input name="from" type="text" class="form-control" placeholder="Starting Page"
-                               value="{{ result.FromKey | default: index.Random.Title  }}">
-                    </div>
-                    <div class="col-5">
-                        <label for="to">Destination Page</label>
-                        <input name="to" type="text" class="form-control" placeholder="Destination Page"
-                               value="{{ result.ToKey | default: index.Random.Title }}">
-                    </div>
+            <h5 class="card-title">Page Distance</h5>
+            <p class="card-text">
+                On this page you can get the distance between two pages. That is, how many clicks
+                are required to get from one page to the other, using only links on the pages.
+            </p>
 
-                    <div class="col-2">
-                        <button type="submit" class="btn btn-primary">Find Path</button>
-                    </div>
+            <form action="/path">
+                <input name="from" type="text" class="form-control mb-2" placeholder="Starting Page"
+                       value="{{ result.FromKey | default: index.Random.Title  }}">
+                <div class="d-flex flex-nowrap">
+                    <input name="to" type="text" class="form-control flex-grow-1 mr-3"
+                           placeholder="Destination Page"
+                           value="{{ result.ToKey | default: index.Random.Title }}">
+                    <button type="submit" class="btn btn-primary text-nowrap">Find distance</button>
                 </div>
             </form>
+
         </div>
     </div>
 

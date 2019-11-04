@@ -2,26 +2,52 @@
 
 {% block content %}
 <main class="container">
-    <h1 class="mb-4">Pages</h1>
 
-    <div class="card mb-4">
-        <div class="card-body">
-            <form>
-                <div class="form-row align-items-end">
-                    <div class="col-5">
-                        <label for="from">Search Page</label>
-                        <input name="title" type="text" class="form-control" placeholder="Page"
+    <div class="row">
+
+        <div class="col-12 col-md mb-5">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Search for Pages</h5>
+                    <p class="card-text">
+                        Here you can search for all indexed pages.
+                        When you click on a page you can see from which pages it is referenced by
+                        and to which pages it has references.
+                    </p>
+
+                    <form action="/page" class="d-flex flex-nowrap">
+                        <input name="title" type="text" class="form-control flex-grow-1 mr-3" placeholder="Page"
                                value="{{ result.SearchKey | default: index.Random.Title }}">
-                    </div>
-
-                    <div class="col-2">
-                        <button type="submit" class="btn btn-primary">Search</button>
-                    </div>
+                        <button type="submit" class="btn btn-primary text-nowrap">Search for Page</button>
+                    </form>
                 </div>
-            </form>
+            </div>
         </div>
-    </div>
 
+        {% if result.Set %}
+        <div class="col-12 col-md mb-5">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Page Distance</h5>
+                    <p class="card-text">
+                        Find the distance between <i>{{ result.Page.Title }}</i> and any other page:
+                    </p>
+
+                    <form action="/path">
+                        <input name="from" type="text" hidden value="{{ result.SearchKey }}">
+                        <div class="d-flex flex-nowrap">
+                            <input name="to" type="text" class="form-control flex-grow-1 mr-3"
+                                   placeholder="Destination Page"
+                                   value="{{ index.Random.Title }}">
+                            <button type="submit" class="btn btn-primary text-nowrap">Find distance</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
 
     {% if result.Set %}
     {% if !result.Found %}
@@ -31,7 +57,7 @@
     {% else %}
 
     <div class="d-flex d-inline align-items-center mb-4">
-        <h1 class="mr-2">{{ result.Page.Title }}</h1>
+        <h1 class="mr-3">{{ result.Page.Title }}</h1>
         <a target=_blank href="{{ result.Page.WikipediaUrl }}"><span class="oi oi-external-link"></span></a>
     </div>
 
