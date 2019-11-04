@@ -264,6 +264,9 @@ func (i *MapIndex) LeastReferenced() Pageable {
 }
 
 func (i *MapIndex) Random() *Page {
+	i.RLock()
+	defer i.RUnlock()
+
 	if i.randomSet == nil {
 		for _, page := range i.index {
 			if len(page.ReferencedBy()) > minReferences && len(page.ReferencesTo()) > minReferences {
