@@ -67,6 +67,9 @@ func (i *MapIndex) Size() int {
 }
 
 func (i *MapIndex) Path(from, to Pageable) ([]Pageable, error) {
+	if from == to {
+		return []Pageable{from}, nil
+	}
 	cost := map[Pageable]int{}
 
 	queue := make([]Pageable, 0)
