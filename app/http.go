@@ -11,7 +11,7 @@ import (
 
 func (a *App) Serve(address string) error {
 	r := gin.Default()
-
+	r.Use(a.IndexingMiddleware())
 	r.GET("/", a.Root())
 	r.GET("/page", a.Page())
 	r.GET("/path", a.Path())
@@ -20,6 +20,25 @@ func (a *App) Serve(address string) error {
 	//r.GET("/loooongest", a.LongestOverall())
 
 	return r.Run(address)
+}
+
+func (a *App) IndexingMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		if !a.IndexInProgress {
+			return
+		}
+
+		tpl := pongo2.Must(pongo2.FromFile("view/wait.html"))
+
+		err := tpl.ExecuteWriter(pongo2.Context{
+			"count": *a.Count,
+		}, c.Writer)
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		c.Abort()
+	}
 }
 
 func (a *App) Root() gin.HandlerFunc {

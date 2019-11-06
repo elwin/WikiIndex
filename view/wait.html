@@ -1,0 +1,34 @@
+{% extends 'master.html' %}
+
+{% block content %}
+<main class="container">
+
+    <div class="jumbotron">
+        <h1 class="display-4 mb-0">Index in progress</h1>
+        <h1 class="mb-4 text-muted"><small>{{ count }} pages indexed</small></h1>
+
+        <p class="lead">
+            This project has been created to play around with the Wikipedia dataset. The goal is to calculate the
+            distance
+            between two pages, that is, how many clicks are required to get from one page to the other by only using
+            the
+            links on each page.
+        </p>
+
+        <p class="lead">
+            Currently only the the Simple Wikipedia has been indexed. The reason for this is that the entire index
+            (containing page title + references) is stored in memory. Now, to index the English Wikipedia either
+            more memory
+            is required or the data needs to be partially stored on disk (or the memory footprint reduced with
+            another way).
+        </p>
+
+        <hr class="my-4">
+
+        <p class="text-right">
+            You can find the source code on <a href="https://github.com/elwin/WikiIndex">Github</a>
+        </p>
+    </div>
+
+</main>
+{% endblock %}

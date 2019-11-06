@@ -25,12 +25,38 @@ type Revision struct {
 	Text    string   `xml:"text"`
 }
 
+var blacklist = []string{
+	"User",
+	"Talk",
+	"Category",
+	"Wikipedia",
+	"MediaWiki",
+	"Template",
+	"User talk",
+	"Wikipedia talk",
+	"File talk",
+	"MediaWiki talk",
+	"Template talk",
+	"Help talk",
+	"Category talk",
+	"Portal talk",
+	"Book talk",
+	"Draft talk",
+	"TimedText talk",
+	"Module talk",
+	"Special",
+	"Help",
+	"Module",
+}
+
 type Result map[string][]string
 
 func Process(r io.Reader, count *int) (Result, error) {
 	result := Result{}
 
 	decoder := xml.NewDecoder(r)
+
+PageIteration:
 	for {
 		t, err := decoder.Token()
 		if err == io.EOF {
@@ -47,12 +73,21 @@ func Process(r io.Reader, count *int) (Result, error) {
 					return nil, errors.Wrap(err, "failed to decode element")
 				}
 
-				if len(page.Revision) > 0 {
-					title := page.Title
-					content := page.Revision[0].Text
-					result[title] = parseLinks(content)
-					*count++
+				if len(page.Revision) == 0 {
+					continue PageIteration
 				}
+
+				title := page.Title
+				content := page.Revision[0].Text
+
+				for _, prefix := range blacklist {
+					if strings.HasPrefix(title, prefix+":") {
+						continue PageIteration
+					}
+				}
+
+				result[title] = parseLinks(content)
+				*count++
 			}
 		}
 	}

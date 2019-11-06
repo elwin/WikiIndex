@@ -8,8 +8,9 @@ import (
 )
 
 type App struct {
-	Index database.Index
-	Count *int
+	Index           database.Index
+	Count           *int
+	IndexInProgress bool
 }
 
 func New() *App {
@@ -17,10 +18,11 @@ func New() *App {
 	return &App{
 		database.New(),
 		&i,
+		true,
 	}
 }
 
-func (a *App) AddWikiIndex (r io.Reader) error {
+func (a *App) AddWikiIndex(r io.Reader) error {
 	fmt.Println("Processing file")
 	x, err := wiki.Process(r, a.Count)
 	if err != nil {
@@ -31,6 +33,7 @@ func (a *App) AddWikiIndex (r io.Reader) error {
 	a.Index.BatchProcess(x)
 
 	fmt.Println("Finished processing")
+	a.IndexInProgress = false
 
 	return nil
 }
