@@ -17,7 +17,7 @@ func (a *App) Serve(address string) error {
 	r.GET("/path", a.Path())
 	r.GET("/longest", a.Longest())
 	r.Static("/assets", "./assets")
-	//r.GET("/loooongest", a.LongestOverall())
+	//r.GET("/overall_longest", a.LongestOverall())
 
 	return r.Run(address)
 }
