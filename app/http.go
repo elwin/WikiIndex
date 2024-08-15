@@ -60,10 +60,12 @@ func (a *App) Root() gin.HandlerFunc {
 func (a *App) Page() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		result := struct {
-			SearchKey string
-			Set       bool
-			Found     bool
-			Page      database.Pageable
+			SearchKey   string
+			Set         bool
+			Found       bool
+			Page        database.Pageable
+			Longest     database.Pageable
+			LongestHops int
 		}{}
 
 		title := c.Query("title")
@@ -75,6 +77,7 @@ func (a *App) Page() gin.HandlerFunc {
 			if ok {
 				result.Found = true
 				result.Page = p
+				result.Longest, result.LongestHops = a.Index.LongestPath(p)
 			}
 		}
 

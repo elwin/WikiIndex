@@ -61,16 +61,14 @@
         <a target=_blank href="{{ result.Page.WikipediaUrl }}"><span class="oi oi-external-link"></span></a>
     </div>
 
-    {% comment %}
     <div class="card mb-4">
         <div class="card-body">
             <h5 class="card-title">Longest Distance</h5>
-            <p class="card-text"><a href="/page?title={{ maxTarget.Title }}">{{ maxTarget.Title }}</a>: {{ maxDistance }}
+            <p class="card-text"><a href="/page?title={{ result.Longest.Title }}">{{ result.Longest.Title }}</a>: {{ result.LongestHops }}
                 hops
             </p>
         </div>
     </div>
-    {% endcomment %}
 
     <div class="row">
 
