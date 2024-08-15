@@ -6,6 +6,7 @@ import (
 )
 
 type Pageable interface {
+	Id() int
 	Title() string
 	Slug() string
 	ReferencesTo() []Pageable
@@ -16,21 +17,27 @@ type Pageable interface {
 }
 
 type Page struct {
+	id           int
 	title        string
 	slug         string
-	referencesTo map[string]bool
-	referencedBy map[string]bool
+	referencesTo map[int]bool
+	referencedBy map[int]bool
 	index        Index
 }
 
 func NewPage(title string, i Index) *Page {
 	return &Page{
+		i.NewIndex(),
 		title,
 		i.UniqueSlug(title),
-		make(map[string]bool),
-		make(map[string]bool),
+		make(map[int]bool),
+		make(map[int]bool),
 		i,
 	}
+}
+
+func (p *Page) Id() int {
+	return p.id
 }
 
 func (p *Page) Title() string {
@@ -57,7 +64,7 @@ func (p *Page) ReferencesTo() []Pageable {
 }
 
 func (p *Page) AddReferenceTo(page Pageable) {
-	p.referencesTo[page.Slug()] = true
+	p.referencesTo[page.Id()] = true
 }
 
 func (p *Page) ReferencedBy() []Pageable {
@@ -76,7 +83,7 @@ func (p *Page) ReferencedBy() []Pageable {
 }
 
 func (p *Page) AddReferenceBy(page Pageable) {
-	p.referencedBy[page.Slug()] = true
+	p.referencedBy[page.Id()] = true
 }
 
 func (p *Page) WikipediaUrl() string {

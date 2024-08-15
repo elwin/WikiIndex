@@ -6,7 +6,7 @@ build:
 	docker build . -t $(REPOSITORY)
 
 run: build
-	docker run -p 8080:80 $(REPOSITORY)
+	docker run -p 8080:8080 $(REPOSITORY)
 
 publish: build
 	docker tag $(REPOSITORY) $(REGISTRY)/$(REPOSITORY):$(VERSION)

@@ -14,7 +14,9 @@ import (
 const minReferences = 5
 
 type Index interface {
-	Get(title string) (Pageable, bool)
+	Get(id int) (Pageable, bool)
+	GetByTitle(title string) (Pageable, bool)
+	GetBySlug(slug string) (Pageable, bool)
 	Path(from, to Pageable) ([]Pageable, error)
 	LongestPath(from Pageable) (Pageable, int)
 	LongestTotalPath() (from, to Pageable, cost int)
@@ -25,10 +27,14 @@ type Index interface {
 	Size() int
 	Slug(string) string
 	UniqueSlug(string) string
+	NewIndex() int
 }
 
 type MapIndex struct {
-	index           map[string]*Page
+	currentIndex    int
+	index           map[int]*Page
+	titleIndex      map[string]*Page
+	slugIndex       map[string]*Page
 	mostReferenced  *Page
 	leastReferenced *Page
 	randomSet       []*Page
@@ -37,6 +43,9 @@ type MapIndex struct {
 
 func New() *MapIndex {
 	return &MapIndex{
+		0,
+		map[int]*Page{},
+		map[string]*Page{},
 		map[string]*Page{},
 		nil,
 		nil,
@@ -45,10 +54,26 @@ func New() *MapIndex {
 	}
 }
 
-func (i *MapIndex) Get(title string) (Pageable, bool) {
-	title = i.Slug(title)
+func (i *MapIndex) Get(id int) (Pageable, bool) {
+	page, ok := i.index[id]
+	if !ok {
+		return nil, false
+	}
 
-	page, ok := i.index[title]
+	return page, true
+}
+
+func (i *MapIndex) GetByTitle(title string) (Pageable, bool) {
+	page, ok := i.titleIndex[title]
+	if !ok {
+		return nil, false
+	}
+
+	return page, true
+}
+
+func (i *MapIndex) GetBySlug(slug string) (Pageable, bool) {
+	page, ok := i.slugIndex[slug]
 	if !ok {
 		return nil, false
 	}
@@ -59,7 +84,9 @@ func (i *MapIndex) Get(title string) (Pageable, bool) {
 func (i *MapIndex) add(title string) {
 	page := NewPage(title, i)
 
-	i.index[page.Slug()] = page
+	i.index[page.id] = page
+	i.titleIndex[page.title] = page
+	i.slugIndex[page.slug] = page
 }
 
 func (i *MapIndex) Size() int {
@@ -209,13 +236,13 @@ func (i *MapIndex) BatchProcess(data map[string][]string) {
 	// Add references to entries
 	fmt.Println("Adding References")
 	for title, references := range data {
-		p, ok := i.Get(title)
+		p, ok := i.GetByTitle(title)
 		if !ok {
 			continue
 		}
 
 		for _, referenceTitle := range references {
-			reference, ok := i.Get(referenceTitle)
+			reference, ok := i.GetByTitle(referenceTitle)
 			if !ok {
 				continue
 			}
@@ -294,11 +321,17 @@ func (i *MapIndex) UniqueSlug(title string) string {
 	j := 2
 
 	for {
-		if _, ok := i.Get(newTitle); !ok {
+		if _, ok := i.GetByTitle(newTitle); !ok {
 			return newTitle
 		}
 
 		newTitle = title + "-" + strconv.Itoa(j)
 		j++
 	}
+}
+
+func (i *MapIndex) NewIndex() int {
+	i.currentIndex++
+
+	return i.currentIndex - 1
 }

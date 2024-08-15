@@ -65,7 +65,7 @@
     <div class="card mb-4">
         <div class="card-body">
             <h5 class="card-title">Longest Distance</h5>
-            <p class="card-text"><a href="/page?title={{ maxTarget.Slug }}">{{ maxTarget.Title }}</a>: {{ maxDistance }}
+            <p class="card-text"><a href="/page?slug={{ maxTarget.Slug }}">{{ maxTarget.Title }}</a>: {{ maxDistance }}
                 hops
             </p>
         </div>
@@ -86,7 +86,7 @@
                     {% endif %}
 
                     {% for reference in result.Page.ReferencedBy %}
-                    <li class="list-group-item"><a href="/page?title={{ reference.Slug }}">{{ reference.Title }}</a>
+                    <li class="list-group-item"><a href="/page?slug={{ reference.Slug }}">{{ reference.Title }}</a>
                     </li>
                     {% endfor %}
                 </ul>
@@ -105,7 +105,7 @@
                     {% endif %}
 
                     {% for reference in result.Page.ReferencesTo %}
-                    <li class="list-group-item"><a href="/page?title={{ reference.Slug }}">{{ reference.Title }}</a>
+                    <li class="list-group-item"><a href="/page?slug={{ reference.Slug }}">{{ reference.Title }}</a>
                     </li>
                     {% endfor %}
                 </ul>

@@ -17,7 +17,7 @@ func (a *App) Serve(address string) error {
 	r.GET("/path", a.Path())
 	r.GET("/longest", a.Longest())
 	r.Static("/assets", "./assets")
-	//r.GET("/overall_longest", a.LongestOverall())
+	r.GET("/overall_longest", a.LongestOverall())
 
 	return r.Run(address)
 }
@@ -66,12 +66,12 @@ func (a *App) Page() gin.HandlerFunc {
 			Page      database.Pageable
 		}{}
 
-		title := c.Query("title")
-		if title != "" {
-			result.SearchKey = title
+		slug := c.Query("slug")
+		if slug != "" {
+			result.SearchKey = slug
 			result.Set = true
 
-			p, ok := a.Index.Get(title)
+			p, ok := a.Index.GetBySlug(slug)
 			if ok {
 				result.Found = true
 				result.Page = p
@@ -107,12 +107,12 @@ func (a *App) Path() gin.HandlerFunc {
 			result.ToKey = to
 			result.Set = true
 
-			to, ok := a.Index.Get(to)
+			to, ok := a.Index.GetByTitle(to)
 			if !ok {
 				result.Error = errors.Errorf("Page '%s' not found.", result.ToKey)
 			}
 
-			from, ok := a.Index.Get(from)
+			from, ok := a.Index.GetByTitle(from)
 			if !ok {
 				result.Error = errors.Errorf("Page '%s' not found.", result.FromKey)
 			}
@@ -136,7 +136,7 @@ func (a *App) Path() gin.HandlerFunc {
 
 func (a *App) Longest() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		from, ok := a.Index.Get(c.Query("from"))
+		from, ok := a.Index.GetByTitle(c.Query("from"))
 		if !ok {
 			c.JSON(404, gin.H{
 				"error": fmt.Sprintf("page '%s' not found", from),
