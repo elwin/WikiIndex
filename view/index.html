@@ -37,7 +37,7 @@
                 <div class="card-body">
                     <h5 class="card-title">Most referenced page</h5>
                     <p class="card-text">
-                        The page <a href="/page?slug={{ maxReferenced.Slug }}">{{ maxReferenced.Title }}</a>
+                        The page <a href="/page?title={{ maxReferenced.Title }}">{{ maxReferenced.Title }}</a>
                         has been referenced {{ maxReferenced.ReferencedBy | length }} times.
                     </p>
                 </div>
@@ -51,7 +51,7 @@
                 <div class="card-body">
                     <h5 class="card-title">Least referenced page</h5>
                     <p class="card-text">
-                        The page <a href="/page?slug={{ minReferenced.Slug }}">{{ minReferenced.Title }}</a>
+                        The page <a href="/page?title={{ minReferenced.Title }}">{{ minReferenced.Title }}</a>
                         has been referenced {{ minReferenced.ReferencedBy | length }} times.
                     </p>
                 </div>

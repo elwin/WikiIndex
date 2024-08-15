@@ -51,8 +51,8 @@ func (p *Page) Slug() string {
 func (p *Page) ReferencesTo() []Pageable {
 	result := make([]Pageable, 0)
 
-	for slug := range p.referencesTo {
-		page, ok := p.index.Get(slug)
+	for id := range p.referencesTo {
+		page, ok := p.index.Get(id)
 		if !ok {
 			continue
 		}
@@ -70,8 +70,8 @@ func (p *Page) AddReferenceTo(page Pageable) {
 func (p *Page) ReferencedBy() []Pageable {
 	result := make([]Pageable, 0)
 
-	for slug := range p.referencedBy {
-		page, ok := p.index.Get(slug)
+	for id := range p.referencedBy {
+		page, ok := p.index.Get(id)
 		if !ok {
 			continue
 		}

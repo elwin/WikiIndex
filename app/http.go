@@ -66,12 +66,12 @@ func (a *App) Page() gin.HandlerFunc {
 			Page      database.Pageable
 		}{}
 
-		slug := c.Query("slug")
-		if slug != "" {
-			result.SearchKey = slug
+		title := c.Query("title")
+		if title != "" {
+			result.SearchKey = title
 			result.Set = true
 
-			p, ok := a.Index.GetBySlug(slug)
+			p, ok := a.Index.GetByTitle(title)
 			if ok {
 				result.Found = true
 				result.Page = p
