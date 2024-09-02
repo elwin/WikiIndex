@@ -3,6 +3,7 @@ package app
 import (
 	"WikiIndex/database"
 	"fmt"
+	"net/http"
 
 	"github.com/flosch/pongo2"
 	"github.com/gin-gonic/gin"
@@ -18,12 +19,29 @@ func (a *App) Serve(address string) error {
 	r.GET("/longest", a.Longest())
 	r.Static("/assets", "./assets")
 	r.GET("/overall_longest", a.LongestOverall())
+	r.GET("/robots.txt", robots())
 
 	return r.Run(address)
 }
 
+func robots() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Data(http.StatusOK, "text/plain; charset=utf-8", []byte(`User-agent: *
+
+Allow: /$
+Allow: /path$
+Allow: /page$
+Disallow: /
+`))
+	}
+}
+
 func (a *App) IndexingMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		if c.Request.URL.Path == "/robots.txt" {
+			return
+		}
+
 		if !a.IndexInProgress {
 			return
 		}
